@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.prod
+    container_name: fastapi-backend
+    env_file:
+      - Backend/.env
+    expose:
+      - "8000"
+    networks:
+      - app-network
+
+  # --- DELETED THE 'frontend' SERVICE HERE ---
+
+  nginx:
+    build:
+      # Context must be ROOT (.) so Docker can see 'frontend' folder
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Only mount certificates. NO code mounting needed!
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
